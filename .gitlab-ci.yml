@@ -84,10 +84,13 @@ create-namespaces:
           kubectl create namespace "$NAMESPACE"
         fi
       done
+  needs:
+  - setup_secrets_operator
+  - setup_helm
   tags:
     - laptop
 
-deploy-workload-helm:
+deploy-workload-helm-dev:
   stage: deploy
   script:
     - export PATH=$PATH:/usr/local/bin/
@@ -99,3 +102,17 @@ deploy-workload-helm:
   tags:
     - laptop
 
+
+deploy-workload-helm-stage:
+  stage: deploy
+  script:
+    - export PATH=$PATH:/usr/local/bin/
+    - export KUBECONFIG=$DEV_KUBE_CONFIG
+    - export SOPS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
+    - export SOPS_AGE_KEY=$SOPS_AGE_KEY
+    - export HELM_SECRETS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
+    - /home/linuxbrew/.linuxbrew/bin/helmfile -e stage apply
+  needs:
+  - deploy-workload-helm-dev
+  tags:
+    - laptop
