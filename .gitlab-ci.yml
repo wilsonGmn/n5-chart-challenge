@@ -6,6 +6,9 @@ workflow:
                 #when: always: This rule is a catch-all. 
                 #It means that if none of the previous rules apply, the pipeline will always run.
 
+before_script:
+  - export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
+
 default:
   tags:
     - docker
@@ -41,14 +44,13 @@ setup_helm:
   before_script:
 
     - export PATH=$PATH:/usr/local/bin/
-    - export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
     - helm version
 
     # Install helm plugins
     - helm plugin list
 
     # Install Helmfile
-    - /home/linuxbrew/.linuxbrew/bin/helmfile --version
+    - helmfile --version
   allow_failure: true
   script:
     - echo "Helm, Helmfile, and plugins installed successfully!"
