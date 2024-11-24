@@ -37,7 +37,7 @@ setup_helm:
     - helm version
 
     # Install helm plugins
-    - helm plugins list
+    - helm plugin list
 
     # Install Helmfile
     - helmfile --version
@@ -61,7 +61,7 @@ setup_secrets_operator:
 
     - |
       # Install Age
-      age-keygen --version
+      age --version
 
     # Configure
     - cat $SOPS_FILE > .sops.yaml
