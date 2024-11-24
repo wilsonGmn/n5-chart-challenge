@@ -41,7 +41,7 @@ setup_helm:
   before_script:
 
     - export PATH=$PATH:/usr/local/bin/
-    #- export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
+    - export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
     - helm version
 
     # Install helm plugins
