@@ -33,8 +33,8 @@ setup_helm:
   stage: setup
   before_script:
 
-    - export PATH=$PATH:/usr/local/bin
-    - export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
+    - export PATH=$PATH:/usr/local/bin/
+    #- export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
     - helm version
 
     # Install helm plugins
@@ -56,7 +56,7 @@ setup_secrets_operator:
   allow_failure: true
   script:
     - export PATH=$PATH:/usr/local/bin/
-    - export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
+    #- export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
     - |
       # Install SOPS
       sops -version
@@ -92,7 +92,7 @@ deploy-workload-helm:
   stage: deploy
   script:
     - export PATH=$PATH:/usr/local/bin/
-    - export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
+    #- export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
     - export KUBECONFIG=$DEV_KUBE_CONFIG
     - export SOPS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
     - export SOPS_AGE_KEY=$SOPS_AGE_KEY
