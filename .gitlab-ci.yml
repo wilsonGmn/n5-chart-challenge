@@ -6,12 +6,9 @@ workflow:
                 #when: always: This rule is a catch-all. 
                 #It means that if none of the previous rules apply, the pipeline will always run.
 
-before_script:
-  - export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
-
 default:
   tags:
-    - docker
+    - local
 
 stages:
   - setup
@@ -32,12 +29,6 @@ pre_kubeconfig:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-say_hello:
-  stage: setup
-  script:
-    - echo "Say HELLLO!!"
-  tags:
-    - laptop
 
 setup_helm:
   stage: setup
@@ -50,12 +41,61 @@ setup_helm:
     - helm plugin list
 
     # Install Helmfile
-    - helmfile --version
+    - /home/linuxbrew/.linuxbrew/bin/helmfile --version
   allow_failure: true
   script:
     - echo "Helm, Helmfile, and plugins installed successfully!"
   tags:
     - laptop
 
+setup_secrets_operator:
+  stage: setup
+  before_script:
+    # Update the package manager and install prerequisites
+    - apt-get update && apt-get install -y curl apt-transport-https gnupg software-properties-common
+  allow_failure: true
+  script:
+    - export PATH=$PATH:/usr/local/bin/
+    - |
+      # Install SOPS
+      sops -version
 
+    - |
+      # Install Age
+      /home/linuxbrew/.linuxbrew/bin/age --version
+
+    # Configure
+    - cat $SOPS_FILE > .sops.yaml
+  tags:
+    - laptop
+
+create-namespaces:
+  stage: deploy
+  script:
+    - export KUBECONFIG=$DEV_KUBE_CONFIG
+    - kubectl config get-contexts
+    - echo "Checking and creating namespaces if they do not exist..."
+    - |
+      for NAMESPACE in dev stage; do
+        if kubectl get namespace "$NAMESPACE" > /dev/null 2>&1; then
+          echo "Namespace '$NAMESPACE' already exists."
+        else
+          echo "Creating namespace '$NAMESPACE'..."
+          kubectl create namespace "$NAMESPACE"
+        fi
+      done
+  tags:
+    - laptop
+
+deploy-workload-helm:
+  stage: deploy
+  script:
+    - export PATH=$PATH:/usr/local/bin/
+    - export KUBECONFIG=$DEV_KUBE_CONFIG
+    - export SOPS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
+    - export SOPS_AGE_KEY=$SOPS_AGE_KEY
+    - export HELM_SECRETS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
+    - /home/linuxbrew/.linuxbrew/bin/helmfile -e dev apply
+  tags:
+    - laptop
 
