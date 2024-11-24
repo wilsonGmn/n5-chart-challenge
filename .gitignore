@@ -6,3 +6,5 @@ public-key.pem
 private-key.pem
 
 .sops.yaml
+
+secrets.yaml
