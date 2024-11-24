@@ -34,7 +34,6 @@ setup_helm:
   stage: setup
   before_script:
 
-    - export PATH=$PATH:/usr/local/bin/
     - helm version
 
     # Install helm plugins
@@ -42,7 +41,6 @@ setup_helm:
 
     # Install Helmfile
     - /home/linuxbrew/.linuxbrew/bin/helmfile --version
-  allow_failure: true
   script:
     - echo "Helm, Helmfile, and plugins installed successfully!"
   tags:
@@ -53,7 +51,6 @@ setup_secrets_operator:
   before_script:
     # Update the package manager and install prerequisites
     - apt-get update && apt-get install -y curl apt-transport-https gnupg software-properties-common
-  allow_failure: true
   script:
     - export PATH=$PATH:/usr/local/bin/
     - |
