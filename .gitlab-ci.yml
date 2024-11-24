@@ -103,8 +103,6 @@ create-namespaces:
           kubectl create namespace "$NAMESPACE"
         fi
       done
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   tags:
     - laptop
 
@@ -116,7 +114,5 @@ deploy-workload-helm:
     - export SOPS_AGE_KEY=$SOPS_AGE_KEY
     - export HELM_SECRETS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
     - helmfile -e dev apply
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   tags:
     - laptop
