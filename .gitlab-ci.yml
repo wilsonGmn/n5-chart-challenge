@@ -40,7 +40,7 @@ setup_helm:
     - helm plugin list
 
     # Install Helmfile
-    - /home/linuxbrew/.linuxbrew/bin/helmfile --version
+    - helmfile --version
   script:
     - echo "Helm, Helmfile, and plugins installed successfully!"
   tags:
@@ -52,7 +52,6 @@ setup_secrets_operator:
     # Update the package manager and install prerequisites
     - apt-get update && apt-get install -y curl apt-transport-https gnupg software-properties-common
   script:
-    - export PATH=$PATH:/usr/local/bin/
     - |
       # Install SOPS
       sops -version
@@ -90,7 +89,6 @@ create-namespaces:
 deploy-workload-helm-dev:
   stage: deploy
   script:
-    - export PATH=$PATH:/usr/local/bin/
     - export KUBECONFIG=$DEV_KUBE_CONFIG
     - export SOPS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
     - export SOPS_AGE_KEY=$SOPS_AGE_KEY
@@ -105,7 +103,6 @@ deploy-workload-helm-dev:
 deploy-workload-helm-stage:
   stage: deploy
   script:
-    - export PATH=$PATH:/usr/local/bin/
     - export KUBECONFIG=$DEV_KUBE_CONFIG
     - export SOPS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
     - export SOPS_AGE_KEY=$SOPS_AGE_KEY
