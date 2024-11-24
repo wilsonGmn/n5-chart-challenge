@@ -55,7 +55,8 @@ setup_secrets_operator:
     - apt-get update && apt-get install -y curl apt-transport-https gnupg software-properties-common
   allow_failure: true
   script:
-    - export PATH=$PATH:/usr/local/bin:/home/linuxbrew/.linuxbrew/bin/
+    - export PATH=$PATH:/usr/local/bin/
+    - export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
     - |
       # Install SOPS
       sops -version
@@ -90,7 +91,8 @@ create-namespaces:
 deploy-workload-helm:
   stage: deploy
   script:
-    - export PATH=$PATH:/usr/local/bin:/home/linuxbrew/.linuxbrew/bin/
+    - export PATH=$PATH:/usr/local/bin/
+    - export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
     - export KUBECONFIG=$DEV_KUBE_CONFIG
     - export SOPS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
     - export SOPS_AGE_KEY=$SOPS_AGE_KEY
