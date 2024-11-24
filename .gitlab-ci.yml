@@ -34,12 +34,25 @@ setup_helm:
   stage: setup
   before_script:
 
+    # # Update the system and install prerequisites
+    # - apt-get update && apt-get install -y curl bash git openssl apt-transport-https software-properties-common
+
+    # Install Helm
+    # - curl https://baltocdn.com/helm/signing.asc | apt-key add -
+    # - apt-add-repository "deb https://baltocdn.com/helm/stable/debian/ all main"
+    # - apt-get update && apt-get install -y helm
     - helm version
 
     # Install helm plugins
+    # - helm plugin install https://github.com/databus23/helm-diff
+    # - helm plugin install https://github.com/jkroepke/helm-secrets
     - helm plugin list
 
     # Install Helmfile
+    # - curl -LO https://github.com/helmfile/helmfile/releases/download/v0.169.1/helmfile_linux_amd64
+    # - chmod +x helmfile_linux_amd64
+    # - mv helmfile_linux_amd64 /usr/local/bin/helmfile
+    # - helmfile --version
     -  /home/linuxbrew/.linuxbrew/bin/helmfile --version
   script:
     - echo "Helm, Helmfile, and plugins installed successfully!"
@@ -52,13 +65,24 @@ setup_secrets_operator:
     # Update the package manager and install prerequisites
     - apt-get update && apt-get install -y curl apt-transport-https gnupg software-properties-common
   script:
-    - |
-      # Install SOPS
-      sops -version
+    # Install SOPS
+    #     - |
+    #   SOPS_LATEST_VERSION=$(curl -s "https://api.github.com/repos/getsops/sops/releases/latest" | grep -Po '"tag_name": "v[0-9.]+"' | sed -E 's/"tag_name": "v([0-9.]+)"/\1/')
+    #   curl -Lo sops.deb "https://github.com/getsops/sops/releases/download/v${SOPS_LATEST_VERSION}/sops_${SOPS_LATEST_VERSION}_amd64.deb"
+    #   sudo apt --fix-broken install -y ./sops.deb
+    #   rm -rf sops.deb
+    - sops -version
 
-    - |
-      # Install Age
-      /home/linuxbrew/.linuxbrew/bin/age --version
+    #Install Age
+    # - |
+    #   curl -LO https://github.com/FiloSottile/age/releases/download/v1.2.0/age-v1.2.0-linux-amd64.tar.gz
+    #   tar -xzf age-v1.1.1-linux-amd64.tar.gz
+    #   mv age/age /usr/local/bin/
+    #   mv age/age-keygen /usr/local/bin/
+    #   rm -rf age age-v1.1.1-linux-amd64.tar.gz
+    #   age --version
+    #   age --version
+    - /home/linuxbrew/.linuxbrew/bin/age --version
 
     # Configure
     - cat $SOPS_FILE > .sops.yaml
