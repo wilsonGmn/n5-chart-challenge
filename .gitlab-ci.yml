@@ -40,7 +40,7 @@ setup_helm:
     - helm plugin list
 
     # Install Helmfile
-    - helmfile --version
+    -  /home/linuxbrew/.linuxbrew/bin/helmfile --version
   script:
     - echo "Helm, Helmfile, and plugins installed successfully!"
   tags:
