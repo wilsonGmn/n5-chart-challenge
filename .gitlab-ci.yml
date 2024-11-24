@@ -33,3 +33,27 @@ say_hello:
   stage: setup
   script:
     - echo "Say HELLLO!!"
+  tags:
+    - laptop
+
+setup_helm:
+  stage: setup
+  before_script:
+
+    - export PATH=$PATH:/usr/local/bin/
+    #- export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin/
+    - helm version
+
+    # Install helm plugins
+    - helm plugin list
+
+    # Install Helmfile
+    - helmfile --version
+  allow_failure: true
+  script:
+    - echo "Helm, Helmfile, and plugins installed successfully!"
+  tags:
+    - laptop
+
+
+
