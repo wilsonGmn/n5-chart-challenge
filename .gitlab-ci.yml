@@ -55,7 +55,7 @@ setup_helm:
     - echo "Helm, Helmfile, and plugins installed successfully!"
   tags:
     - laptop
-
+  when: manual 
 
 setup_secrets_operator:
   stage: setup
@@ -86,6 +86,7 @@ setup_secrets_operator:
     - cat $SOPS_FILE > .sops.yaml
   tags:
     - laptop
+  when: manual 
 
 create-namespaces:
   stage: deploy
