@@ -1,0 +1,18 @@
+environments:
+  dev:
+    values:
+      - ./n5-nginx-chart/values-dev.yaml
+  stage:
+    values:
+      - ./n5-nginx-chart/values-stage.yaml
+
+---
+
+releases:
+  - name: n5-nginx-{{ .Environment.Name }}
+    chart: ./n5-nginx-chart
+    namespace: {{ .Environment.Name }}
+    values:
+      - ./n5-nginx-chart/values.yaml
+    secrets:
+      - ./secrets-{{ .Environment.Name }}.yaml
