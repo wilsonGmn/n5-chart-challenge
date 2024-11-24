@@ -110,29 +110,34 @@ create-namespaces:
   tags:
     - laptop
 
-deploy-workload-helm-dev:
+
+.deploy-template: &deploy-template
   stage: deploy
   script:
-    - export KUBECONFIG=$DEV_KUBE_CONFIG
+    - export KUBECONFIG=$DEV_KUBE_CONFIG   
     - export SOPS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
     - export SOPS_AGE_KEY=$SOPS_AGE_KEY
     - export HELM_SECRETS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
+    - /home/linuxbrew/.linuxbrew/bin/helmfile -e $HELM_ENV apply 
+  tags:
+    - laptop
+
+deploy-workload-helm-dev:
+  <<: *deploy-template  
+  script:
+    - export HELM_ENV=dev 
     - /home/linuxbrew/.linuxbrew/bin/helmfile -e dev apply
   needs:
     - create-namespaces
   tags:
     - laptop
 
-
 deploy-workload-helm-stage:
-  stage: deploy
+  <<: *deploy-template 
   script:
-    - export KUBECONFIG=$DEV_KUBE_CONFIG
-    - export SOPS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
-    - export SOPS_AGE_KEY=$SOPS_AGE_KEY
-    - export HELM_SECRETS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
+    - export HELM_ENV=stage  
     - /home/linuxbrew/.linuxbrew/bin/helmfile -e stage apply
   needs:
-  - deploy-workload-helm-dev
+    - deploy-workload-helm-dev 
   tags:
     - laptop
