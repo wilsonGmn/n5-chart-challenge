@@ -125,7 +125,6 @@ create-namespaces:
 deploy-workload-helm-dev:
   <<: *deploy-template  
   script:
-    - export HELM_ENV=dev 
     - /home/linuxbrew/.linuxbrew/bin/helmfile -e dev apply
   needs:
     - create-namespaces
@@ -135,7 +134,6 @@ deploy-workload-helm-dev:
 deploy-workload-helm-stage:
   <<: *deploy-template 
   script:
-    - export HELM_ENV=stage  
     - /home/linuxbrew/.linuxbrew/bin/helmfile -e stage apply
   needs:
     - deploy-workload-helm-dev 
