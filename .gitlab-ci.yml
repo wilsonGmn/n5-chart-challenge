@@ -33,12 +33,12 @@ setup_helm:
   stage: setup
   before_script:
     # Update the system and install prerequisites
-    - apt-get update && apt-get install -y curl bash git openssl apt-transport-https software-properties-common
+    - sudo apt-get update && apt-get install -y curl bash git openssl apt-transport-https software-properties-common
 
     # Install Helm
     - curl https://baltocdn.com/helm/signing.asc | apt-key add -
-    - apt-add-repository "deb https://baltocdn.com/helm/stable/debian/ all main"
-    - apt-get update && apt-get install -y helm
+    - sudo apt-add-repository "deb https://baltocdn.com/helm/stable/debian/ all main"
+    - sudo apt-get update && apt-get install -y helm
     - helm version
 
     # Install helm plugins
@@ -55,7 +55,6 @@ setup_helm:
     - echo "Helm, Helmfile, and plugins installed successfully!"
   tags:
     - laptop
-  when: manual 
 
 setup_secrets_operator:
   stage: setup
