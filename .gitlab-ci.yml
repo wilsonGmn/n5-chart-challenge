@@ -32,13 +32,8 @@ pre_kubeconfig:
 setup_helm:
   stage: setup
   before_script:
-    # Update the system and install prerequisites
-    - sudo apt-get update && apt-get install -y curl bash git openssl apt-transport-https software-properties-common
 
-    # Install Helm
-    - curl https://baltocdn.com/helm/signing.asc | apt-key add -
-    - sudo apt-add-repository "deb https://baltocdn.com/helm/stable/debian/ all main"
-    - sudo apt-get update && apt-get install -y helm
+    - export PATH=$PATH:/usr/local/bin
     - helm version
 
     # Install helm plugins
@@ -50,7 +45,7 @@ setup_helm:
     - chmod +x helmfile_linux_amd64
     - mv helmfile_linux_amd64 /usr/local/bin/helmfile
     - helmfile --version
-
+  allow_failure: true
   script:
     - echo "Helm, Helmfile, and plugins installed successfully!"
   tags:
@@ -61,7 +56,7 @@ setup_secrets_operator:
   before_script:
     # Update the package manager and install prerequisites
     - apt-get update && apt-get install -y curl apt-transport-https gnupg software-properties-common
-
+  allow_failure: true
   script:
     - |
       # Install SOPS
@@ -85,7 +80,6 @@ setup_secrets_operator:
     - cat $SOPS_FILE > .sops.yaml
   tags:
     - laptop
-  when: manual 
 
 create-namespaces:
   stage: deploy
