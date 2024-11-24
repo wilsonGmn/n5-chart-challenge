@@ -29,4 +29,7 @@ pre_kubeconfig:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-
+say_hello:
+  stage: setup
+  script:
+    - echo "Say HELLLO!!"
