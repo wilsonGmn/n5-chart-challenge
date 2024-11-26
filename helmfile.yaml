@@ -15,4 +15,9 @@ releases:
     values:
       - ./n5-nginx-chart/values.yaml
     secrets:
-      - ./secrets-{{ .Environment.Name }}.yaml
+      - ./secrets-{{ .Environment.Name }}.
+      
+---
+
+helmDefaults:
+  skipDiff: true
