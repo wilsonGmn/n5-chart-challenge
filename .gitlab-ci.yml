@@ -91,6 +91,9 @@ setup_secrets_operator:
 create-namespaces:
   stage: deploy
   script:
+    - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+    - export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
     - export KUBECONFIG=$DEV_KUBE_CONFIG
     - kubectl config get-contexts
     - echo "Checking and creating namespaces if they do not exist..."
@@ -113,11 +116,13 @@ create-namespaces:
 .deploy-template: &deploy-template
   stage: deploy
   script:
+    - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+    - export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
     - export KUBECONFIG=$DEV_KUBE_CONFIG   
     - export SOPS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
     - export SOPS_AGE_KEY=$SOPS_AGE_KEY
     - export HELM_SECRETS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
-    - /home/linuxbrew/.linuxbrew/bin/helmfile -e $HELM_ENV apply 
   tags:
     - laptop
 
