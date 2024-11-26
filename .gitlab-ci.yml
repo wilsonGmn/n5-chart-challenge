@@ -3,8 +3,7 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == 'push' && $CI_OPEN_MERGE_REQUESTS && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == 'true'
       when: never
     - when: always
-                #when: always: This rule is a catch-all. 
-                #It means that if none of the previous rules apply, the pipeline will always run.
+
 
 default:
   tags:
@@ -18,14 +17,14 @@ pre_kubeconfig:
   stage: .pre
   script:
     - echo "Setting up KUBECONFIG"
-    - export KUBECONFIG=$DEV_KUBE_CONFIG  # Export KUBECONFIG variable for all stages
+    - export KUBECONFIG=$DEV_KUBE_CONFIG
     - cat $DEV_KUBE_CONFIG > $CI_PROJECT_DIR/kubeconfig
   tags:
     - laptop
   artifacts:
     paths:
       - $CI_PROJECT_DIR/kubeconfig 
-    expire_in: 1h  # Set artifact expiration
+    expire_in: 1h  
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
