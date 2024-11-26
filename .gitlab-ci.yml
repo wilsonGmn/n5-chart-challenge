@@ -129,7 +129,7 @@ create-namespaces:
 deploy-workload-helm-dev:
   <<: *deploy-template  
   script:
-    - /home/linuxbrew/.linuxbrew/bin/helmfile -e dev apply
+    - /home/linuxbrew/.linuxbrew/bin/helmfile -e dev apply  --skip-diff
   needs:
     - create-namespaces
   tags:
@@ -138,7 +138,7 @@ deploy-workload-helm-dev:
 deploy-workload-helm-stage:
   <<: *deploy-template 
   script:
-    - /home/linuxbrew/.linuxbrew/bin/helmfile -e stage apply
+    - /home/linuxbrew/.linuxbrew/bin/helmfile -e stage apply  --skip-diff
   needs:
     - deploy-workload-helm-dev 
   tags:
