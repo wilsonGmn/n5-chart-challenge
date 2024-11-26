@@ -4,7 +4,6 @@ workflow:
       when: never
     - when: always
 
-
 default:
   tags:
     - local
@@ -13,6 +12,7 @@ stages:
   - setup
   - deploy
 
+# Pre-Kubeconfig setup, shared by various stages
 pre_kubeconfig:
   stage: .pre
   script:
@@ -28,62 +28,27 @@ pre_kubeconfig:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-
-setup_helm:
-  stage: setup
+# Helm setup, reusable for both stages
+.setup-helm-template: &setup-helm-template
   before_script:
-
-    # # Update the system and install prerequisites
-    # - apt-get update && apt-get install -y curl bash git openssl apt-transport-https software-properties-common
-
-    # Install Helm
-    # - curl https://baltocdn.com/helm/signing.asc | apt-key add -
-    # - apt-add-repository "deb https://baltocdn.com/helm/stable/debian/ all main"
-    # - apt-get update && apt-get install -y helm
     - helm version
-
-    # Install helm plugins
-    # - helm plugin install https://github.com/databus23/helm-diff
-    # - helm plugin install https://github.com/jkroepke/helm-secrets
     - helm plugin list
-
-    # Install Helmfile
-    # - curl -LO https://github.com/helmfile/helmfile/releases/download/v0.169.1/helmfile_linux_amd64
-    # - chmod +x helmfile_linux_amd64
-    # - mv helmfile_linux_amd64 /usr/local/bin/helmfile
-    # - helmfile --version
-    -  /home/linuxbrew/.linuxbrew/bin/helmfile --version
+    - /home/linuxbrew/.linuxbrew/bin/helmfile --version
   script:
     - echo "Helm, Helmfile, and plugins installed successfully!"
   tags:
     - laptop
 
+setup_helm:
+  stage: setup
+  <<: *setup-helm-template
+
 setup_secrets_operator:
   stage: setup
   before_script:
-    # Update the package manager and install prerequisites
     - apt-get update && apt-get install -y curl apt-transport-https gnupg software-properties-common
   script:
-    # Install SOPS
-    #     - |
-    #   SOPS_LATEST_VERSION=$(curl -s "https://api.github.com/repos/getsops/sops/releases/latest" | grep -Po '"tag_name": "v[0-9.]+"' | sed -E 's/"tag_name": "v([0-9.]+)"/\1/')
-    #   curl -Lo sops.deb "https://github.com/getsops/sops/releases/download/v${SOPS_LATEST_VERSION}/sops_${SOPS_LATEST_VERSION}_amd64.deb"
-    #   sudo apt --fix-broken install -y ./sops.deb
-    #   rm -rf sops.deb
-    - sops -version
-
-    #Install Age
-    # - |
-    #   curl -LO https://github.com/FiloSottile/age/releases/download/v1.2.0/age-v1.2.0-linux-amd64.tar.gz
-    #   tar -xzf age-v1.1.1-linux-amd64.tar.gz
-    #   mv age/age /usr/local/bin/
-    #   mv age/age-keygen /usr/local/bin/
-    #   rm -rf age age-v1.1.1-linux-amd64.tar.gz
-    #   age --version
-    #   age --version
     - /home/linuxbrew/.linuxbrew/bin/age --version
-
-    # Configure
     - cat $SOPS_FILE > .sops.yaml
   tags:
     - laptop
@@ -107,16 +72,14 @@ create-namespaces:
         fi
       done
   needs:
-  - setup_secrets_operator
-  - setup_helm
+    - setup_secrets_operator
+    - setup_helm
   tags:
     - laptop
-
 
 .deploy-template: &deploy-template
   stage: deploy
   before_script:
-    # Load AWS and Kubernetes configuration
     - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
     - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
     - export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-west-1} # Default to us-west-1 if not set
@@ -125,7 +88,6 @@ create-namespaces:
     - export SOPS_AGE_KEY=$SOPS_AGE_KEY
     - export HELM_SECRETS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
     - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name n5-challenge-app
-    # Verify Kubernetes connection
     - kubectl get nodes
   tags:
     - laptop
@@ -133,7 +95,6 @@ create-namespaces:
 deploy-workload-helm-dev:
   <<: *deploy-template
   script:
-    # Helmfile deployment for 'dev' environment
     - /home/linuxbrew/.linuxbrew/bin/helmfile -e dev apply --log-level debug
   needs:
     - create-namespaces
@@ -143,7 +104,6 @@ deploy-workload-helm-dev:
 deploy-workload-helm-stage:
   <<: *deploy-template
   script:
-    # Helmfile deployment for 'stage' environment
     - /home/linuxbrew/.linuxbrew/bin/helmfile -e stage apply
   needs:
     - deploy-workload-helm-dev
