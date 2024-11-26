@@ -15,4 +15,4 @@ releases:
     values:
       - ./n5-nginx-chart/values.yaml
     secrets:
-      - ./secrets-{{ .Environment.Name }}.
+      - ./secrets-{{ .Environment.Name }}.yaml
