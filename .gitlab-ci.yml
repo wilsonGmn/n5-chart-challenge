@@ -122,14 +122,16 @@ create-namespaces:
     - export KUBECONFIG=$DEV_KUBE_CONFIG   
     - export SOPS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
     - export SOPS_AGE_KEY=$SOPS_AGE_KEY
-    - export HELM_SECRETS_AGE_KEY_FILE=$SOPS_AGE_KEY_FILE
+    - export HELM_SECRETS_AGE_KEY_FILE=$
+    - aws eks update-kubeconfig --region us-west-1 --name n5-challenge-app
+    - kubectl get nodes
   tags:
     - laptop
 
 deploy-workload-helm-dev:
   <<: *deploy-template  
   script:
-    - /home/linuxbrew/.linuxbrew/bin/helmfile -e dev apply
+    - /home/linuxbrew/.linuxbrew/bin/helmfile -e dev apply --log-level debug
   needs:
     - create-namespaces
   tags:
