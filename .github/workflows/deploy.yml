@@ -1,0 +1,149 @@
+name: Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-west-1
+  AWS_ROLE_ARN: arn:aws:iam::<ACCOUNT_ID>:role/<ROLE_NAME>
+
+permissions:
+  id-token: write    # ← Necesario para que GitHub emita el JWT OIDC
+  contents: read
+
+jobs:
+  pre_kubeconfig:
+    runs-on: [self-hosted, laptop]
+    steps:
+      - name: Setup KUBECONFIG
+        run: |
+          echo "Setting up KUBECONFIG"
+          echo "${{ secrets.DEV_KUBE_CONFIG }}" > "${{ github.workspace }}/kubeconfig"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kubeconfig
+          path: ${{ github.workspace }}/kubeconfig
+          retention-days: 1
+
+  # ── stage: setup ──
+  setup_helm:
+    needs: pre_kubeconfig
+    runs-on: [self-hosted, laptop]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Helm, Helmfile and plugins
+        run: |
+          helm version
+          helm plugin list
+          /home/linuxbrew/.linuxbrew/bin/helmfile --version
+          echo "Helm, Helmfile, and plugins installed successfully!"
+
+  setup_secrets_operator:
+    needs: pre_kubeconfig
+    runs-on: [self-hosted, laptop]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl apt-transport-https gnupg software-properties-common
+      - name: Verify age and create .sops.yaml
+        run: |
+          /home/linuxbrew/.linuxbrew/bin/age --version
+          echo "${{ secrets.SOPS_FILE }}" > .sops.yaml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sops-config
+          path: .sops.yaml
+          retention-days: 1
+
+  # ── stage: deploy ──
+  create-namespaces:
+    needs: [setup_secrets_operator, setup_helm]
+    runs-on: [self-hosted, laptop]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: ${{ github.workspace }}
+      - name: Authenticate to AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Check and create namespaces
+        env:
+          KUBECONFIG: ${{ github.workspace }}/kubeconfig
+        run: |
+          kubectl config get-contexts
+          echo "Checking and creating namespaces if they do not exist..."
+          for NAMESPACE in dev stage; do
+            if kubectl get namespace "$NAMESPACE" > /dev/null 2>&1; then
+              echo "Namespace '$NAMESPACE' already exists."
+            else
+              echo "Creating namespace '$NAMESPACE'..."
+              kubectl create namespace "$NAMESPACE"
+            fi
+          done
+
+  deploy-workload-helm-dev:
+    needs: create-namespaces
+    runs-on: [self-hosted, laptop]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: ${{ github.workspace }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: sops-config
+          path: .
+      - name: Authenticate to AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Configure EKS and deploy (dev)
+        env:
+          KUBECONFIG: ${{ github.workspace }}/kubeconfig
+          SOPS_AGE_KEY_FILE: ${{ secrets.SOPS_AGE_KEY_FILE }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          HELM_SECRETS_AGE_KEY_FILE: ${{ secrets.SOPS_AGE_KEY_FILE }}
+        run: |
+          aws eks update-kubeconfig --region $AWS_REGION --name n5-challenge-app
+          kubectl get nodes
+          /home/linuxbrew/.linuxbrew/bin/helmfile -e dev apply --log-level debug
+
+  deploy-workload-helm-stage:
+    needs: deploy-workload-helm-dev
+    runs-on: [self-hosted, laptop]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: ${{ github.workspace }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: sops-config
+          path: .
+      - name: Authenticate to AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Configure EKS and deploy (stage)
+        env:
+          KUBECONFIG: ${{ github.workspace }}/kubeconfig
+          SOPS_AGE_KEY_FILE: ${{ secrets.SOPS_AGE_KEY_FILE }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          HELM_SECRETS_AGE_KEY_FILE: ${{ secrets.SOPS_AGE_KEY_FILE }}
+        run: |
+          aws eks update-kubeconfig --region $AWS_REGION --name n5-challenge-app
+          kubectl get nodes
+          /home/linuxbrew/.linuxbrew/bin/helmfile -e stage apply
